@@ -80,15 +80,6 @@ uchar   portB = 0, portC = 0, portD = 0, ddrB = 0, ddrC = 0, ddrD = 0;
     UTIL_PBIT_SET(port, HWPIN_GREEN_LED);   /* turn green LED on USBASP off, turned on in the usbFunctionSetup */
 #endif
 
-#if METABOARD_HARDWARE
-    UTIL_PBIT_SET(ddr, HWPIN_LED);
-    UTIL_PBIT_SET(port, HWPIN_LED);
-    /* keep all I/O pins and DDR bits for ISP on low level */
-    UTIL_PBIT_CLR(port, HWPIN_ISP_SUPPLY1);
-    UTIL_PBIT_CLR(port, HWPIN_ISP_SUPPLY2);
-    UTIL_PBIT_SET(ddr, HWPIN_ISP_SUPPLY1);
-    UTIL_PBIT_SET(ddr, HWPIN_ISP_SUPPLY2);
-#else /* METABOARD_HARDWARE */
     UTIL_PBIT_CLR(port, HWPIN_ISP_DRIVER);
     UTIL_PBIT_SET(ddr, HWPIN_ISP_DRIVER);
     UTIL_PBIT_SET(ddr, HWPIN_LED);
@@ -103,7 +94,6 @@ uchar   portB = 0, portC = 0, portD = 0, ddrB = 0, ddrC = 0, ddrD = 0;
     UTIL_PBIT_SET(ddr, HWPIN_ISP_MOSI);
     UTIL_PBIT_CLR(port, HWPIN_ISP_RESET);
     UTIL_PBIT_SET(ddr, HWPIN_ISP_RESET);
-#endif /* METABOARD_HARDWARE */
 
     UTIL_PBIT_SET(port, HWPIN_JUMPER);
     UTIL_PBIT_CLR(ddr, HWPIN_JUMPER);
@@ -119,20 +109,11 @@ uchar   portB = 0, portC = 0, portD = 0, ddrB = 0, ddrC = 0, ddrD = 0;
     TCCR0 = 3;              /* 1/64 prescaler */
     TIMSK = (1 << TOIE0);   /* enable timer0 overflow interrupt */
 
-#if USBASP_HARDWARE
-    /* Do not configure Timer 1 for original USBasp hardware */
-#elif METABOARD_HARDWARE
-    /* timer 1 configuration (used for target clock): */
-    TCCR1A = UTIL_BIN8(1000, 0010); /* OC1A = PWM out, OC1B disconnected */
-    TCCR1B = UTIL_BIN8(0001, 1001); /* wgm 14: TOP = ICR1, prescaler = 1 */
-    ICR1 = F_CPU / 1000000 - 1;     /* TOP value for 1 MHz */
-    OCR1A = F_CPU / 2000000 - 1;    /* 50% duty cycle */
-#else /* METABOARD_HARDWARE */
     /* timer 1 configuration (used for high voltage generator): ~23.4 kHz PWM (9 bit) */
     TCCR1A = UTIL_BIN8(1000, 0010);  /* OC1A = PWM, OC1B disconnected, 9 bit */
     TCCR1B = UTIL_BIN8(0000, 1001);  /* 9 bit, prescaler=1 */
     OCR1A = 1;      /* set duty cycle to minimum */
-    
+
     /* timer 2 configuration (used for target clock) */
 #ifdef TCCR2A
     TCCR2A = UTIL_BIN8(0000, 0010); /* OC2A disconnected, CTC mode (WGM 0,1) */
@@ -141,7 +122,6 @@ uchar   portB = 0, portC = 0, portD = 0, ddrB = 0, ddrC = 0, ddrD = 0;
     TCCR2 = UTIL_BIN8(0000, 1001);  /* OC2 disconnected, prescaler=1, CTC mode */
 #endif
     OCR2 = 2;       /* should give 3 MHz clock */
-#endif /* METABOARD_HARDWARE */
 }
 
 static void s_open()

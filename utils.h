@@ -22,13 +22,8 @@ This module contains general purpose macros and functions:
 #ifndef __utils_h_included__
 #define __utils_h_included__
 
-#ifndef uchar
-#define uchar   unsigned char
-#endif
-
-#ifndef uint
-#define uint    unsigned int
-#endif
+typedef unsigned char uchar;
+typedef unsigned int uint;
 
 #ifndef __ASSEMBLER__
 

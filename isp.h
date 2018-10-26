@@ -21,13 +21,8 @@ results for the output data stream, where appropriate.
 
 #include "stk500protocol.h"
 
-#ifndef uchar
-#define uchar   unsigned char
-#endif
-
-#ifndef uint
-#define uint    unsigned int
-#endif
+typedef unsigned char uchar;
+typedef unsigned int uint;
 
 uchar   ispEnterProgmode(stkEnterProgIsp_t *param);
 void    ispLeaveProgmode(stkLeaveProgIsp_t *param);

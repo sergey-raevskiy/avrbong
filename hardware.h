@@ -79,51 +79,6 @@ PORT D
 
 /* The following defines can be used with the PORT_* macros from utils.h */
 
-#if USBASP_HARDWARE         /* USBasp hardware from www.fischl.de/usbasp/ */
-
-#undef ENABLE_HVPROG
-#define ENABLE_HVPROG       0
-#define METABOARD_HARDWARE  1   /* most settings are the same as for metaboard */
-
-#define HWPIN_GREEN_LED     C, 0
-#define HWPIN_LED           C, 1
-#define HWPIN_ISP_SUPPLY1   C, 3    /* these pins are NC on USBasp */
-#define HWPIN_ISP_SUPPLY2   C, 4
-
-#define HWPIN_ISP_RESET     B, 2
-#define HWPIN_ISP_MOSI      B, 3
-#define HWPIN_ISP_MISO      B, 4
-#define HWPIN_ISP_SCK       B, 5
-
-#define HWPIN_ISP_TXD       D, 0
-#define HWPIN_ISP_RXD       D, 1
-#define HWPIN_USB_DPLUS     B, 1
-#define HWPIN_USB_DMINUS    B, 0
-#define HWPIN_JUMPER        C, 2
-
-#elif METABOARD_HARDWARE    /* Metaboard hardware from www.obdev.at/goto?t=metaboard */
-
-#undef ENABLE_HVPROG
-#define ENABLE_HVPROG       0
-
-#define HWPIN_LED           C, 1
-#define HWPIN_ISP_SUPPLY1   C, 3
-#define HWPIN_ISP_SUPPLY2   C, 4
-
-#define HWPIN_ISP_CLK       B, 1
-#define HWPIN_ISP_RESET     B, 2
-#define HWPIN_ISP_MOSI      B, 3
-#define HWPIN_ISP_MISO      B, 4
-#define HWPIN_ISP_SCK       B, 5
-
-#define HWPIN_ISP_TXD       D, 0
-#define HWPIN_ISP_RXD       D, 1
-#define HWPIN_USB_DPLUS     D, 2
-#define HWPIN_USB_DMINUS    D, 4
-#define HWPIN_JUMPER        D, 7
-
-#else                       /* Standard AVR-Doper hardware */
-
 #define HWPIN_HVSP_SUPPLY   B, 0
 #define HWPIN_SMPS_OUT      B, 1
 #define HWPIN_HVSP_HVRESET  B, 2
@@ -148,8 +103,6 @@ PORT D
 #define HWPIN_HVSP_SII      D, 5
 #define HWPIN_HVSP_SDI      D, 6
 #define HWPIN_HVSP_SDO      D, 7
-
-#endif
 
 /* Device compatibility: Allow both, ATMega8 and ATMega88/168. The following
  * macros (almost) mimic an ATMega8 based on the ATMega88/168 defines.

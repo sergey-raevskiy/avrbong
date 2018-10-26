@@ -35,18 +35,24 @@ enum {
     stk_msg_body_start = stk_msg_header_len
 };
 
-#define BUFFER_SIZE     281 /* results in 275 bytes max body size */
+#define stk_msg_len(body_len) (stk_msg_header_len + (body_len) + 1)
+
+enum {
+    stk_msg_body_maxlen = 275,
+    stk_msg_maxlen = stk_msg_len(stk_msg_body_maxlen)
+};
+
 #define RX_TIMEOUT      200 /* timeout in milliseconds */
 
 #define STK_TXMSG_START 5
 
 
-static uchar        rxBuffer[BUFFER_SIZE];
+static uchar        rxBuffer[stk_msg_maxlen];
 static uint         rxPos;
 static uint         rxLen;
 static uchar        rxBlockAvailable;
 
-static uchar        txBuffer[BUFFER_SIZE];
+static uchar        txBuffer[stk_msg_maxlen];
 static uint         txPos, txLen;
 
 stkParam_t      stkParam = {{
@@ -78,12 +84,12 @@ static void stkSetTxMessage(uint len)
     txBuffer[stk_msg_token] = STK_TOKEN;
 
     txPos = 0;
-    txLen = stk_msg_header_len + len;
+    txLen = stk_msg_len(len);
 
-    for (i = 0; i < txLen; i++)
+    for (i = 0; i < txLen - 1; i++)
         sum = sum ^ txBuffer[i];
 
-    txBuffer[txLen++] = sum;
+    txBuffer[txLen - 1] = sum;
 
     DBG1(0xe0, txBuffer, txLen);
 }
@@ -287,7 +293,7 @@ void    stkSetRxChar(uchar c)
     }
     else
     {
-        if (rxPos < BUFFER_SIZE)
+        if (rxPos < stk_msg_maxlen)
         {
             rxBuffer[rxPos++] = c;
 
@@ -295,13 +301,14 @@ void    stkSetRxChar(uchar c)
             {
                 /* do we have length byte? */
                 rxLen = makeword(rxBuffer[stk_msg_body_len_hi], rxBuffer[stk_msg_body_len_lo]);
-                rxLen = stk_msg_header_len + rxLen + 1;
 
-                if (rxLen > BUFFER_SIZE)
+                if (rxLen > stk_msg_body_maxlen)
                 {
                     /* illegal length */
                     rxPos = 0;      /* reset state */
                 }
+
+                rxLen = stk_msg_len(rxLen);
             }
             else if (rxPos == stk_msg_body_start)
             {

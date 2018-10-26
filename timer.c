@@ -34,11 +34,7 @@ void timerTicksDelay(uchar ticks)
 char    d, until;
 
     cli();
-#ifdef SFIOR
-    SFIOR = _BV(PSR10);     /* reset prescaler */
-#else
     GTCCR = _BV(PSRSYNC);
-#endif
     until = TCNT0 + ticks;
     sei();
     do{

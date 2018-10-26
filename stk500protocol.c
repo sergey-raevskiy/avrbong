@@ -25,6 +25,16 @@
 #define STK_VERSION_MAJOR   2
 #define STK_VERSION_MINOR   4
 
+enum {
+    stk_msg_start = 0,
+    stk_msg_seq_num,
+    stk_msg_body_len_hi,
+    stk_msg_body_len_lo,
+    stk_msg_token,
+    stk_msg_header_len,
+    stk_msg_body_start = stk_msg_header_len
+};
+
 #define BUFFER_SIZE     281 /* results in 275 bytes max body size */
 #define RX_TIMEOUT      200 /* timeout in milliseconds */
 
@@ -33,7 +43,7 @@
 
 static uchar        rxBuffer[BUFFER_SIZE];
 static uint         rxPos;
-static utilWord_t   rxLen;
+static uint         rxLen;
 static uchar        rxBlockAvailable;
 
 static uchar        txBuffer[BUFFER_SIZE];
@@ -58,21 +68,23 @@ void    stkIncrementAddress(void)
 
 static void stkSetTxMessage(uint len)
 {
-uchar   *p = txBuffer, sum = 0;
+    uchar sum = 0;
+    uint i;
 
-    *p++ = STK_STX;
-    *p++ = rxBuffer[1];  /* sequence number */
-    *p++ = utilHi8(len);
-    *p++ = len;
-    *p++ = STK_TOKEN;
+    txBuffer[stk_msg_start] = STK_STX;
+    txBuffer[stk_msg_seq_num] = rxBuffer[stk_msg_seq_num];
+    txBuffer[stk_msg_body_len_hi] = hibyte(len);
+    txBuffer[stk_msg_body_len_lo] = lobyte(len);
+    txBuffer[stk_msg_token] = STK_TOKEN;
+
     txPos = 0;
-    len += 6;
-    txLen = len--;
-    p = txBuffer;
-    while(len--){
-        sum ^= *p++;
-    }
-    *p = sum;
+    txLen = stk_msg_header_len + len;
+
+    for (i = 0; i < txLen; i++)
+        sum = sum ^ txBuffer[i];
+
+    txBuffer[txLen++] = sum;
+
     DBG1(0xe0, txBuffer, txLen);
 }
 
@@ -261,46 +273,76 @@ void        *param;
 
 void    stkSetRxChar(uchar c)
 {
-    if(timerLongTimeoutOccurred()){
+    if (timerLongTimeoutOccurred())
+    {
+        /* reset state */
         rxPos = 0;
     }
-    if(rxPos == 0){     /* only accept STX as the first character */
-        if(c == STK_STX)
+
+    if (rxPos == stk_msg_start)
+    {
+        /* only accept STX as the first character */
+        if (c == STK_STX)
             rxBuffer[rxPos++] = c;
-    }else{
-        if(rxPos < BUFFER_SIZE){
+    }
+    else
+    {
+        if (rxPos < BUFFER_SIZE)
+        {
             rxBuffer[rxPos++] = c;
-            if(rxPos == 4){     /* do we have length byte? */
-                rxLen.bytes[0] = rxBuffer[3];
-                rxLen.bytes[1] = rxBuffer[2];
-                rxLen.word += 6;
-                if(rxLen.word > BUFFER_SIZE){    /* illegal length */
+
+            if (rxPos == stk_msg_token)
+            {
+                /* do we have length byte? */
+                rxLen = makeword(rxBuffer[stk_msg_body_len_hi], rxBuffer[stk_msg_body_len_lo]);
+                rxLen = stk_msg_header_len + rxLen + 1;
+
+                if (rxLen > BUFFER_SIZE)
+                {
+                    /* illegal length */
                     rxPos = 0;      /* reset state */
                 }
-            }else if(rxPos == 5){   /* check whether this is the token byte */
-                if(c != STK_TOKEN){
+            }
+            else if (rxPos == stk_msg_body_start)
+            {
+                /* check whether this is the token byte */
+                if (c != STK_TOKEN)
                     rxPos = 0;  /* reset state */
-                }
-            }else if(rxPos > 4 && rxPos == rxLen.word){ /* message is complete */
+            }
+            else if (rxPos >= stk_msg_body_start && rxPos == rxLen)
+            {
+                /* message is complete */
                 uchar sum = 0;
                 uchar *p = rxBuffer;
-                while(rxPos){ /* decrement rxPos down to 0 -> reset state */
+                while(rxPos)
+                {
+                    /* decrement rxPos down to 0 -> reset state */
                     sum ^= *p++;
                     rxPos--;
                 }
-                if(sum == 0){   /* check sum is correct, evaluate rx message */
+
+                if(sum == 0)
+                {
+                    /* check sum is correct, evaluate rx message */
                     rxBlockAvailable = 1;
-                }else{          /* checksum error */
-                    DBG2(0xf2, rxBuffer, rxLen.word);
-                    txBuffer[STK_TXMSG_START] = STK_ANSWER_CKSUM_ERROR;
-                    txBuffer[STK_TXMSG_START + 1] = STK_ANSWER_CKSUM_ERROR;
+                }
+                else
+                {
+                    /* checksum error */
+                    DBG2(0xf2, rxBuffer, rxLen);
+                    txBuffer[stk_msg_body_start + 0] = STK_ANSWER_CKSUM_ERROR;
+                    txBuffer[stk_msg_body_start + 1] = STK_ANSWER_CKSUM_ERROR;
                     stkSetTxMessage(2);
                 }
             }
-        }else{  /* overflow */
+        }
+        else
+        {
+            /* overflow */
             rxPos = 0;  /* reset state */
         }
     }
+
     timerSetupLongTimeout(RX_TIMEOUT);
 }
 

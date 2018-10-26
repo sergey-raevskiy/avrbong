@@ -47,6 +47,10 @@ utilWord_t converter;
     return converter.bytes[1];
 }
 
+#define lobyte(w) (w & 0xff)
+#define hibyte(w) ((w >> 8) & 0xff)
+#define makeword(hi, lo) (((hi) << 8) | (lo))
+
 /* ------------------------------------------------------------------------- */
 
 #endif  /* !defined(__ASSEMBLER__) */

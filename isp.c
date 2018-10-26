@@ -51,13 +51,8 @@ uchar   cnt, shift = 0, port, delay = ispClockDelay;
             PORT_PIN_SET(HWPIN_ISP_SCK);    /* <-- data clocked by device */
             shift <<= 1;
             port &= ~(1 << PORT_BIT(HWPIN_ISP_MOSI));
-#if METABOARD_HARDWARE
-            if(PORT_PIN_VALUE(HWPIN_ISP_MISO))  /* no driver in this hardware */
-                shift |= 1;
-#else /* METABOARD_HARDWARE */
             if(!PORT_PIN_VALUE(HWPIN_ISP_MISO)) /* driver is inverting */
                 shift |= 1;
-#endif /* METABOARD_HARDWARE */
             sei();
             timerTicksDelay(delay);
             cli();
@@ -73,12 +68,9 @@ uchar   cnt, shift = 0, port, delay = ispClockDelay;
 
 static void ispAttachToDevice(uchar stk500Delay, uchar stabDelay)
 {
-#if !METABOARD_HARDWARE /* on metaboard, we use the jumper to select CDC vs. HID mode */
     if(!PORT_PIN_VALUE(HWPIN_JUMPER)){      /* Jumper is set -> request clock below 8 kHz */
         ispClockDelay = (uchar)(70/TIMER_TICK_US);   /* 140 us -> 7.14 kHz clock rate */
-    }else
-#endif
-    if(stk500Delay == 0){ /* 1.8 MHz nominal */
+    }else if(stk500Delay == 0){ /* 1.8 MHz nominal */
         ispClockDelay = 0;
     }else if(stk500Delay == 1){ /* 460 kHz nominal */
         ispClockDelay = 0;
@@ -97,23 +89,6 @@ static void ispAttachToDevice(uchar stk500Delay, uchar stabDelay)
         ispClockDelay = (stk500Delay + 1)/4 + (stk500Delay + 1)/16;
 #endif
     }
-#if METABOARD_HARDWARE
-    PORT_PIN_CLR(HWPIN_LED);        /* turn on LED */
-    /* turn on power for programming sockets: */
-    PORT_OUT(HWPIN_ISP_SUPPLY1) |= _BV(PORT_BIT(HWPIN_ISP_SUPPLY1)) | _BV(PORT_BIT(HWPIN_ISP_SUPPLY2));
-#ifdef HWPIN_ISP_CLK
-    PORT_DDR_SET(HWPIN_ISP_CLK);    /* turn on optional clock for programming socket */
-#endif
-    PORT_DDR_SET(HWPIN_ISP_SCK);    /* enable programming I/O pins */
-    PORT_DDR_SET(HWPIN_ISP_MOSI);
-    timerMsDelay(200);              /* allow device to power up */
-    PORT_DDR_SET(HWPIN_ISP_RESET);
-    timerMsDelay(stabDelay);
-    timerTicksDelay(ispClockDelay); /* stabDelay may have been 0 */
-    PORT_PIN_SET(HWPIN_ISP_RESET);  /* give positive RESET pulse */
-    timerTicksDelay(ispClockDelay);
-    PORT_PIN_CLR(HWPIN_ISP_RESET);  /* bring RESET back low */
-#else /* METABOARD_HARDWARE */
     PORT_PIN_SET(HWPIN_LED);
     /* setup initial condition: SCK, MOSI = 0 */
     PORT_OUT(HWPIN_ISP_SCK) &= ~((1 << PORT_BIT(HWPIN_ISP_SCK)) | (1 << PORT_BIT(HWPIN_ISP_MOSI)));
@@ -130,24 +105,10 @@ static void ispAttachToDevice(uchar stk500Delay, uchar stabDelay)
     PORT_PIN_CLR(HWPIN_ISP_RESET);  /* give a positive RESET pulse */
     timerTicksDelay(ispClockDelay);
     PORT_PIN_SET(HWPIN_ISP_RESET);
-#endif /* METABOARD_HARDWARE */
 }
 
 static void ispDetachFromDevice(uchar removeResetDelay)
 {
-#if METABOARD_HARDWARE
-    PORT_DDR_CLR(HWPIN_ISP_SCK);
-    PORT_DDR_CLR(HWPIN_ISP_MOSI);
-#ifdef HWPIN_ISP_CLK
-    PORT_DDR_CLR(HWPIN_ISP_CLK);    /* turn off optional clock for programming socket */
-#endif
-    PORT_DDR_CLR(HWPIN_ISP_RESET);
-    PORT_PIN_CLR(HWPIN_ISP_SCK);    /* ensure we have no pull-ups active */
-    PORT_PIN_CLR(HWPIN_ISP_MOSI);
-    /* turn off optional power supply for programming socket: */
-    PORT_OUT(HWPIN_ISP_SUPPLY1) &= ~(_BV(PORT_BIT(HWPIN_ISP_SUPPLY1)) | _BV(PORT_BIT(HWPIN_ISP_SUPPLY2)));
-    PORT_PIN_SET(HWPIN_LED);        /* turn off LED */
-#else /* METABOARD_HARDWARE */
     PORT_OUT(HWPIN_ISP_SCK) &= ~((1 << PORT_BIT(HWPIN_ISP_SCK)) | (1 << PORT_BIT(HWPIN_ISP_MOSI)));
     PORT_PIN_SET(HWPIN_ISP_RESET);
     timerMsDelay(removeResetDelay);
@@ -156,7 +117,6 @@ static void ispDetachFromDevice(uchar removeResetDelay)
     PORT_DDR_SET(HWPIN_ISP_DRIVER); /* set pin level to low-Z 0 */
     PORT_PIN_CLR(HWPIN_ISP_RESET);
     PORT_PIN_CLR(HWPIN_LED);
-#endif /* METABOARD_HARDWARE */
 }
 
 /* ------------------------------------------------------------------------- */

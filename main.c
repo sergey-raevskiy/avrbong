@@ -105,14 +105,6 @@ uchar   portB = 0, portC = 0, portD = 0, ddrB = 0, ddrC = 0, ddrD = 0;
     UTIL_PBIT_SET(ddr, HWPIN_ISP_RESET);
 #endif /* METABOARD_HARDWARE */
 
-    UTIL_PBIT_SET(port, HWPIN_ISP_TXD);
-    UTIL_PBIT_SET(ddr, HWPIN_ISP_TXD);
-    UTIL_PBIT_SET(port, HWPIN_ISP_RXD);
-    UTIL_PBIT_CLR(ddr, HWPIN_ISP_RXD);
-    UTIL_PBIT_CLR(port, HWPIN_USB_DPLUS);
-    UTIL_PBIT_CLR(ddr, HWPIN_USB_DPLUS);
-    UTIL_PBIT_CLR(port, HWPIN_USB_DMINUS);
-    UTIL_PBIT_CLR(ddr, HWPIN_USB_DMINUS);
     UTIL_PBIT_SET(port, HWPIN_JUMPER);
     UTIL_PBIT_CLR(ddr, HWPIN_JUMPER);
 

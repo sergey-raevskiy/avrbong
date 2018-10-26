@@ -95,10 +95,6 @@ PORT D
 #define HWPIN_ISP_RESET     C, 5
 #define HWPIN_HVSP_RESET    C, 5
 
-#define HWPIN_ISP_TXD       D, 0
-#define HWPIN_ISP_RXD       D, 1
-#define HWPIN_USB_DPLUS     D, 2
-#define HWPIN_USB_DMINUS    D, 3
 #define HWPIN_JUMPER        D, 4
 #define HWPIN_HVSP_SII      D, 5
 #define HWPIN_HVSP_SDI      D, 6

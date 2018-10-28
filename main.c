@@ -75,11 +75,6 @@ uchar   portB = 0, portC = 0, portD = 0, ddrB = 0, ddrC = 0, ddrD = 0;
     UTIL_PBIT_SET(ddr, HWPIN_ISP_CLK);
 #endif
 
-#ifdef HWPIN_GREEN_LED
-    UTIL_PBIT_SET(ddr, HWPIN_GREEN_LED);    /* green LED on USBASP */
-    UTIL_PBIT_SET(port, HWPIN_GREEN_LED);   /* turn green LED on USBASP off, turned on in the usbFunctionSetup */
-#endif
-
     UTIL_PBIT_CLR(port, HWPIN_ISP_DRIVER);
     UTIL_PBIT_SET(ddr, HWPIN_ISP_DRIVER);
     UTIL_PBIT_SET(ddr, HWPIN_LED);

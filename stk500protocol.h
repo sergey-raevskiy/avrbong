@@ -127,39 +127,6 @@ typedef struct stkMultiIspResult{
 
 /* ------------------------------------------------------------------------- */
 
-typedef struct stkEnterProgPp{
-    uchar   stabDelay;
-    uchar   progModeDelay;
-    uchar   latchCycles;
-    uchar   toggleVtg;
-    uchar   powerOffDelay;
-    uchar   resetDelayMs;
-    uchar   resetDelayUs;
-}stkEnterProgPp_t;
-
-#define stkLeaveProgPp_t        stkLeaveProgHvsp_t
-
-typedef struct stkChipErasePp{
-    uchar   pulseWidth;
-    uchar   pollTimeout;
-}stkChipErasePp_t;
-
-#define stkProgramFlashPp_t     stkProgramFlashHvsp_t
-
-#define stkReadFlashPp_t        stkReadFlashHvsp_t
-#define stkReadFlashPpResult_t  stkReadFlashHvspResult_t
-
-typedef struct stkProgramFusePp{
-    uchar   address;
-    uchar   data;
-    uchar   pulseWidth;
-    uchar   pollTimeout;
-}stkProgramFusePp_t;
-
-#define stkReadFusePp_t         stkReadFuseHvsp_t
-
-/* ------------------------------------------------------------------------- */
-
 #define STK_STX     27
 #define STK_TOKEN   14
 

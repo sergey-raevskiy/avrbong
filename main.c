@@ -24,7 +24,6 @@ This module implements hardware initialization and the USB interface
 #include "utils.h"
 #include "oddebug.h"
 #include "stk500protocol.h"
-#include "vreg.h"
 #include "timer.h"
 
 /*
@@ -141,7 +140,7 @@ int main(void)
     odDebugInit();
     DBG1(0x00, 0, 0);
     hardwareInit();
-    vregInit();
+    //vregInit();
     sei();
     DBG1(0x01, 0, 0);
     for(;;) { 

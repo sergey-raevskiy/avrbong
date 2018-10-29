@@ -16,9 +16,7 @@
 #include "stk500protocol.h"
 #include "utils.h"
 #include "isp.h"
-#include "hvprog.h"
 #include "timer.h"
-#include "vreg.h"
 
 /* The following versions are reported to the programming software: */
 #define STK_VERSION_HW      1

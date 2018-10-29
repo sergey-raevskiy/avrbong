@@ -22,46 +22,88 @@
 static uchar    ispClockDelay;
 static uchar    cmdBuffer[4];
 
+/* ISP interface */
+#define ISP_PIN_SCK   PORTC2
+#define ISP_PIN_MOSI  PORTC3
+#define ISP_PIN_MISO  PORTC4
+#define ISP_PIN_RESET PORTC5
+#define ISP_PORT      PORTC
+#define ISP_DDR       DDRC
+
+#define ISP_MOSI_SET_HIGH()  sbi(ISP_PORT, ISP_PIN_MOSI)
+#define ISP_MOSI_SET_LOW()   cbi(ISP_PORT, ISP_PIN_MOSI)
+#define ISP_SCK_SET_HIGH()   sbi(ISP_PORT, ISP_PIN_SCK)
+#define ISP_SCK_SET_LOW()    cbi(ISP_PORT, ISP_PIN_SCK)
+#define ISP_RESET_SET_HIGH() sbi(ISP_PORT, ISP_PIN_RESET)
+#define ISP_RESET_SET_LOW()  cbi(ISP_PORT, ISP_PIN_RESET)
+#define ISP_MISO_READ()      bit_is_set(ISP_PORT, ISP_PIN_MISO)
+
+#define ISP_SCK_ATTACH()  (cbi(ISP_PORT, ISP_PIN_SCK), sbi(ISP_DDR, ISP_PIN_SCK))
+#define ISP_MOSI_ATTACH() (cbi(ISP_PORT, ISP_PIN_MOSI), sbi(ISP_DDR, ISP_PIN_MOSI))
+#define ISP_MISO_ATTACH()
+
+#define ISP_SCK_DETACH()  (cbi(ISP_PORT, ISP_PIN_SCK), cbi(ISP_DDR, ISP_PIN_SCK))
+#define ISP_MOSI_DETACH() (cbi(ISP_PORT, ISP_PIN_MOSI), cbi(ISP_DDR, ISP_PIN_MOSI))
+#define ISP_MISO_DETACH()
+
+#define ISP_RESET_ATTACH_SET_LOW() (cbi(ISP_PORT, ISP_PIN_RESET), cbi(ISP_DDR, ISP_PIN_RESET))
+#define ISP_RESET_DETACH()         (cbi(ISP_DDR, ISP_PIN_RESET), cbi(ISP_PORT, ISP_PIN_RESET))
+
+#define BBSPI_PULSE_WIDTH               250
+
+static uint8_t bbspi_transfer(uint8_t b)
+{
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        if (b & 0x80)
+            ISP_MOSI_SET_HIGH();
+        else
+            ISP_MOSI_SET_LOW();
+
+        ISP_SCK_SET_HIGH();
+
+        _delay_us(BBSPI_PULSE_WIDTH);
+
+        b <<= 1;
+        if (ISP_MISO_READ())
+            b |= 1;
+
+        ISP_SCK_SET_LOW();
+
+        _delay_us(BBSPI_PULSE_WIDTH);
+    }
+
+    return b;
+}
+
+static void bbspi_sync_pulse()
+{
+    ISP_SCK_SET_HIGH();
+    _delay_us(BBSPI_PULSE_WIDTH);
+    ISP_SCK_SET_LOW();
+    _delay_us(BBSPI_PULSE_WIDTH);
+}
+
 /* ------------------------------------------------------------------------- */
 /* We disable interrupts while transfer a byte. This ensures that we execute
  * at nominal speed, in spite of aggressive USB polling.
  */
 static uchar ispBlockTransfer(uchar *block, uchar len)
 {
-uchar   cnt, shift = 0, port, delay = ispClockDelay;
-
+    uchar rc = 0;
+    // TODO: Use ispClockDelay
 /* minimum clock pulse width:
  * 5 + 4 * delay clock cycles           -> Tmin = 750 ns
  * total clock period: 12 + 8 * delay   -> fmax = 600 kHz
  */
 /*    DBG2(0x40, block, len); */
-    cli();
-    port = PORT_OUT(HWPIN_ISP_MOSI) & ~(1 << PORT_BIT(HWPIN_ISP_MOSI));
+    //cli();
     while(len--){   /* len may be 0 */
-        cnt = 8;
-        shift = *block++;
-        do{
-            if(shift & 0x80){
-                port |= (1 << PORT_BIT(HWPIN_ISP_MOSI));
-            }
-            PORT_OUT(HWPIN_ISP_MOSI) = port;
-            sei();
-            timerTicksDelay(delay);
-            cli();
-            PORT_PIN_SET(HWPIN_ISP_SCK);    /* <-- data clocked by device */
-            shift <<= 1;
-            port &= ~(1 << PORT_BIT(HWPIN_ISP_MOSI));
-            if(!PORT_PIN_VALUE(HWPIN_ISP_MISO)) /* driver is inverting */
-                shift |= 1;
-            sei();
-            timerTicksDelay(delay);
-            cli();
-            PORT_PIN_CLR(HWPIN_ISP_SCK);    /* <-- device changes data */
-        }while(--cnt);
+        rc = bbspi_transfer(*block++);
     }
-    sei();
+    //sei();
 /*    DBG2(0x41, &shift, 1); */
-    return shift;
+    return rc;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -89,34 +131,43 @@ static void ispAttachToDevice(uchar stk500Delay, uchar stabDelay)
         ispClockDelay = (stk500Delay + 1)/4 + (stk500Delay + 1)/16;
 #endif
     }
-    PORT_PIN_SET(HWPIN_LED);
+    LED_ON();
     /* setup initial condition: SCK, MOSI = 0 */
-    PORT_OUT(HWPIN_ISP_SCK) &= ~((1 << PORT_BIT(HWPIN_ISP_SCK)) | (1 << PORT_BIT(HWPIN_ISP_MOSI)));
-    PORT_PIN_SET(HWPIN_ISP_RESET);  /* set RESET */
-    PORT_DDR_CLR(HWPIN_ISP_DRIVER); /* make input: use internal pullup to control driver */
-    PORT_PIN_SET(HWPIN_ISP_DRIVER); /* attach to device: */
-    TCCR2 |= (1 << COM20);  /* set toggle on compare match mode -> activate clock */
+    ISP_SCK_ATTACH();
+    ISP_MOSI_ATTACH();
+    ISP_MISO_ATTACH();
+
+    ISP_RESET_ATTACH_SET_LOW();  /* set RESET */
+    //PORT_DDR_CLR(HWPIN_ISP_DRIVER); /* make input: use internal pullup to control driver */
+    //PORT_PIN_SET(HWPIN_ISP_DRIVER); /* attach to device: */
+    //TCCR2 |= (1 << COM20);  /* set toggle on compare match mode -> activate clock */
     timerMsDelay(stabDelay);
     timerTicksDelay(ispClockDelay); /* stabDelay may have been 0 */
     /* We now need to give a positive pulse on RESET since we can't guarantee
      * that SCK was low during power up (according to instructions in Atmel's
      * data sheets).
      */
-    PORT_PIN_CLR(HWPIN_ISP_RESET);  /* give a positive RESET pulse */
+    ISP_RESET_SET_HIGH();  /* give a positive RESET pulse */
     timerTicksDelay(ispClockDelay);
-    PORT_PIN_SET(HWPIN_ISP_RESET);
+    ISP_RESET_SET_LOW();
 }
 
 static void ispDetachFromDevice(uchar removeResetDelay)
 {
-    PORT_OUT(HWPIN_ISP_SCK) &= ~((1 << PORT_BIT(HWPIN_ISP_SCK)) | (1 << PORT_BIT(HWPIN_ISP_MOSI)));
-    PORT_PIN_SET(HWPIN_ISP_RESET);
+    ISP_SCK_DETACH();
+    ISP_MOSI_DETACH();
+    ISP_MISO_DETACH();
+
+    /* Reset target. */
+    ISP_RESET_SET_LOW();
     timerMsDelay(removeResetDelay);
-    TCCR2 &= ~(1 << COM20);  /* clear toggle on compare match mode */
-    PORT_PIN_CLR(HWPIN_ISP_DRIVER); /* detach from device */
-    PORT_DDR_SET(HWPIN_ISP_DRIVER); /* set pin level to low-Z 0 */
-    PORT_PIN_CLR(HWPIN_ISP_RESET);
-    PORT_PIN_CLR(HWPIN_LED);
+    //TCCR2 &= ~(1 << COM20);  /* clear toggle on compare match mode */
+    //PORT_PIN_CLR(HWPIN_ISP_DRIVER); /* detach from device */
+    //PORT_DDR_SET(HWPIN_ISP_DRIVER); /* set pin level to low-Z 0 */
+    ISP_RESET_SET_HIGH();
+    ISP_RESET_DETACH();
+
+    LED_OFF();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -137,10 +188,7 @@ uchar   i, rval;
             return STK_STATUS_CMD_OK;
         }
         /* insert one clock pulse and try again: */
-        PORT_PIN_SET(HWPIN_ISP_SCK);
-        timerTicksDelay(ispClockDelay);
-        PORT_PIN_CLR(HWPIN_ISP_SCK);
-        timerTicksDelay(ispClockDelay);
+        bbspi_sync_pulse();
     }
     ispDetachFromDevice(0);
     return STK_STATUS_CMD_FAILED;   /* failure */

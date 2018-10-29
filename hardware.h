@@ -133,6 +133,12 @@ PORT D
 #   define RXCIE    RXCIE0
 #endif
 
+#define LED_PORT PORTB
+#define LED_DDR  DDRB
+#define LED_PIN  PORTB5
 
+#define LED_ON()  sbi(LED_PORT, LED_PIN)
+#define LED_OFF() cbi(LED_PORT, LED_PIN)
+#define LED_CONFIGURE_PIN() (sbi(LED_DDR, LED_PIN), cbi(LED_PORT, LED_PIN))
 
 #endif /* __hardware_h_included__ */

@@ -51,6 +51,10 @@ utilWord_t converter;
 #define hibyte(w) ((w >> 8) & 0xff)
 #define makeword(hi, lo) (((hi) << 8) | (lo))
 
+#define sbi(p, b) ((p) |= (1 << (b)))
+#define cbi(p, b) ((p) &= ~(1 << (b)))
+//#define bit_is_set(p, b) (p & (1 << b))
+
 /* ------------------------------------------------------------------------- */
 
 #endif  /* !defined(__ASSEMBLER__) */

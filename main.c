@@ -51,6 +51,8 @@ static void hardwareInit(void)
 {
 uchar   portB = 0, portC = 0, portD = 0, ddrB = 0, ddrC = 0, ddrD = 0;
 
+    LED_CONFIGURE_PIN();
+
 #if ENABLE_HVPROG
     UTIL_PBIT_SET(port, HWPIN_HVSP_SUPPLY);
     UTIL_PBIT_SET(ddr, HWPIN_HVSP_SUPPLY);

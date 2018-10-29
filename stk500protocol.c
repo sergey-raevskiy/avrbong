@@ -143,7 +143,7 @@ static uchar getParameter(uchar index)
 void stkEvaluateRxMessage(void) /* not static to prevent inlining */
 {
 uchar       i, cmd;
-utilWord_t  len = {2};  /* defaults to cmd + error code */
+uint16_t    len = 2;  /* defaults to cmd + error code */
 void        *param;
 
     DBG1(0xf1, rxBuffer, rxLen.bytes[0]);
@@ -156,12 +156,12 @@ void        *param;
         static const PROGMEM char string[] = {8, 'S', 'T', 'K', '5', '0', '0', '_', '2', 0};
         char *p = (char *)&txBuffer[STK_TXMSG_START + 2];
         strcpy_P(p, string);
-        len.bytes[0] = 11;
+        len = 11;
     SWITCH_CASE(STK_CMD_SET_PARAMETER)
         setParameter(rxBuffer[STK_TXMSG_START + 1], rxBuffer[STK_TXMSG_START + 2]);
     SWITCH_CASE(STK_CMD_GET_PARAMETER)
         txBuffer[STK_TXMSG_START + 2] = getParameter(rxBuffer[STK_TXMSG_START + 1]);
-        len.bytes[0] = 3;
+        len = 3;
     SWITCH_CASE(STK_CMD_OSCCAL)
         txBuffer[STK_TXMSG_START + 1] = STK_STATUS_CMD_FAILED;
         /* not yet implemented */
@@ -188,26 +188,26 @@ void        *param;
     SWITCH_CASE(STK_CMD_PROGRAM_FLASH_ISP)
         txBuffer[STK_TXMSG_START + 1] = ispProgramMemory(param, 0);
     SWITCH_CASE(STK_CMD_READ_FLASH_ISP)
-        len.word = 1 + ispReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 0);
+        len = 1 + ispReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 0);
     SWITCH_CASE(STK_CMD_PROGRAM_EEPROM_ISP)
         txBuffer[STK_TXMSG_START + 1] = ispProgramMemory(param, 1);
     SWITCH_CASE(STK_CMD_READ_EEPROM_ISP)
-        len.word = 1 + ispReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 1);
+        len = 1 + ispReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 1);
     SWITCH_CASE(STK_CMD_PROGRAM_FUSE_ISP)
         txBuffer[STK_TXMSG_START + 1] = ispProgramFuse(param);
     SWITCH_CASE4(STK_CMD_READ_FUSE_ISP, STK_CMD_READ_LOCK_ISP, STK_CMD_READ_SIGNATURE_ISP, STK_CMD_READ_OSCCAL_ISP)
         txBuffer[STK_TXMSG_START + 2] = ispReadFuse(param);
         txBuffer[STK_TXMSG_START + 3] = STK_STATUS_CMD_OK;
-        len.bytes[0] = 4;
+        len = 4;
     SWITCH_CASE(STK_CMD_PROGRAM_LOCK_ISP)
         txBuffer[STK_TXMSG_START + 1] = ispProgramFuse(param);
     SWITCH_CASE(STK_CMD_SPI_MULTI)
-        len.word = 1 + ispMulti(param, (void *)&txBuffer[STK_TXMSG_START + 1]);
+        len = 1 + ispMulti(param, (void *)&txBuffer[STK_TXMSG_START + 1]);
     SWITCH_DEFAULT  /* unknown command */
         DBG1(0xf8, 0, 0);
         txBuffer[STK_TXMSG_START + 1] = STK_STATUS_CMD_FAILED;
     SWITCH_END
-    stkSetTxMessage(len.word);
+    stkSetTxMessage(len);
 }
 
 /* ------------------------------------------------------------------------- */

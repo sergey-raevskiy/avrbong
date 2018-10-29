@@ -209,6 +209,15 @@ typedef struct stkProgramFusePp{
 #define STK_STX     27
 #define STK_TOKEN   14
 
+#define stk_cmd_type(cmd) (((cmd) & 0xf0) >> 4)
+
+enum {
+    stk_cmd_type_general = 0,
+    stk_cmd_type_isp,
+    stk_cmd_type_pp,
+    stk_cmd_type_hvsp
+};
+
 /* =================== [ STK general command constants ] =================== */
 
 #define STK_CMD_SIGN_ON                         0x01

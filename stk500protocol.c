@@ -181,69 +181,6 @@ void        *param;
         bf
         */
         /* dummy: ignore */
-#if ENABLE_HVPROG
-    SWITCH_CASE(STK_CMD_ENTER_PROGMODE_HVSP)
-        hvspEnterProgmode(param);
-    SWITCH_CASE(STK_CMD_LEAVE_PROGMODE_HVSP)
-        hvspLeaveProgmode(param);
-    SWITCH_CASE(STK_CMD_CHIP_ERASE_HVSP)
-        txBuffer[STK_TXMSG_START + 1] = hvspChipErase(param);
-    SWITCH_CASE(STK_CMD_PROGRAM_FLASH_HVSP)
-        txBuffer[STK_TXMSG_START + 1] = hvspProgramMemory(param, 0);
-    SWITCH_CASE(STK_CMD_READ_FLASH_HVSP)
-        len.word = 1 + hvspReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 0);
-    SWITCH_CASE(STK_CMD_PROGRAM_EEPROM_HVSP)
-        txBuffer[STK_TXMSG_START + 1] = hvspProgramMemory(param, 1);
-    SWITCH_CASE(STK_CMD_READ_EEPROM_HVSP)
-        len.word = 1 + hvspReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 1);
-    SWITCH_CASE(STK_CMD_PROGRAM_FUSE_HVSP)
-        txBuffer[STK_TXMSG_START + 1] = hvspProgramFuse(param);
-    SWITCH_CASE(STK_CMD_READ_FUSE_HVSP)
-        txBuffer[STK_TXMSG_START + 2] = hvspReadFuse(param);
-        len.bytes[0] = 3;
-    SWITCH_CASE(STK_CMD_PROGRAM_LOCK_HVSP)
-        txBuffer[STK_TXMSG_START + 1] = hvspProgramLock(param);
-    SWITCH_CASE(STK_CMD_READ_LOCK_HVSP)
-        txBuffer[STK_TXMSG_START + 2] = hvspReadLock();
-        len.bytes[0] = 3;
-    SWITCH_CASE(STK_CMD_READ_SIGNATURE_HVSP)
-        txBuffer[STK_TXMSG_START + 2] = hvspReadSignature(param);
-        len.bytes[0] = 3;
-    SWITCH_CASE(STK_CMD_READ_OSCCAL_HVSP)
-        txBuffer[STK_TXMSG_START + 2] = hvspReadOsccal();
-        len.bytes[0] = 3;
-
-    SWITCH_CASE(STK_CMD_ENTER_PROGMODE_PP)
-        ppEnterProgmode(param);
-    SWITCH_CASE(STK_CMD_LEAVE_PROGMODE_PP)
-        ppLeaveProgmode(param);
-    SWITCH_CASE(STK_CMD_CHIP_ERASE_PP)
-        txBuffer[STK_TXMSG_START + 1] = ppChipErase(param);
-    SWITCH_CASE(STK_CMD_PROGRAM_FLASH_PP)
-        txBuffer[STK_TXMSG_START + 1] = ppProgramMemory(param, 0);
-    SWITCH_CASE(STK_CMD_READ_FLASH_PP)
-        len.word = 1 + ppReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 0);
-    SWITCH_CASE(STK_CMD_PROGRAM_EEPROM_PP)
-        txBuffer[STK_TXMSG_START + 1] = ppProgramMemory(param, 1);
-    SWITCH_CASE(STK_CMD_READ_EEPROM_PP)
-        len.word = 1 + ppReadMemory(param, (void *)&txBuffer[STK_TXMSG_START + 1], 1);
-    SWITCH_CASE(STK_CMD_PROGRAM_FUSE_PP)
-        txBuffer[STK_TXMSG_START + 1] = ppProgramFuse(param);
-    SWITCH_CASE(STK_CMD_READ_FUSE_PP)
-        txBuffer[STK_TXMSG_START + 2] = ppReadFuse(param);
-        len.bytes[0] = 3;
-    SWITCH_CASE(STK_CMD_PROGRAM_LOCK_PP)
-        txBuffer[STK_TXMSG_START + 1] = ppProgramLock(param);
-    SWITCH_CASE(STK_CMD_READ_LOCK_PP)
-        txBuffer[STK_TXMSG_START + 2] = ppReadLock();
-        len.bytes[0] = 3;
-    SWITCH_CASE(STK_CMD_READ_SIGNATURE_PP)
-        txBuffer[STK_TXMSG_START + 2] = ppReadSignature(param);
-        len.bytes[0] = 3;
-    SWITCH_CASE(STK_CMD_READ_OSCCAL_PP)
-        txBuffer[STK_TXMSG_START + 2] = ppReadOsccal();
-        len.bytes[0] = 3;
-#endif /* ENABLE_HVPROG */
     SWITCH_CASE(STK_CMD_ENTER_PROGMODE_ISP)
         txBuffer[STK_TXMSG_START + 1] = ispEnterProgmode(param);
     SWITCH_CASE(STK_CMD_LEAVE_PROGMODE_ISP)

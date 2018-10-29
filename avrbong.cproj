@@ -104,12 +104,6 @@
     <Compile Include="hardware.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="hvprog.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="hvprog.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="isp.c">
       <SubType>compile</SubType>
     </Compile>
@@ -141,12 +135,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="utils.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="vreg.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="vreg.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

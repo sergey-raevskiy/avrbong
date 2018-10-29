@@ -28,6 +28,7 @@ static uchar    cmdBuffer[4];
 #define ISP_PIN_MISO  PORTC4
 #define ISP_PIN_RESET PORTC5
 #define ISP_PORT      PORTC
+#define ISP_PIN       PINC
 #define ISP_DDR       DDRC
 
 #define ISP_MOSI_SET_HIGH()  sbi(ISP_PORT, ISP_PIN_MOSI)
@@ -36,20 +37,20 @@ static uchar    cmdBuffer[4];
 #define ISP_SCK_SET_LOW()    cbi(ISP_PORT, ISP_PIN_SCK)
 #define ISP_RESET_SET_HIGH() sbi(ISP_PORT, ISP_PIN_RESET)
 #define ISP_RESET_SET_LOW()  cbi(ISP_PORT, ISP_PIN_RESET)
-#define ISP_MISO_READ()      bit_is_set(ISP_PORT, ISP_PIN_MISO)
+#define ISP_MISO_READ()      bit_is_set(ISP_PIN, ISP_PIN_MISO)
 
 #define ISP_SCK_ATTACH()  (cbi(ISP_PORT, ISP_PIN_SCK), sbi(ISP_DDR, ISP_PIN_SCK))
 #define ISP_MOSI_ATTACH() (cbi(ISP_PORT, ISP_PIN_MOSI), sbi(ISP_DDR, ISP_PIN_MOSI))
-#define ISP_MISO_ATTACH()
+#define ISP_MISO_ATTACH() (cbi(ISP_PORT, ISP_PIN_MISO), cbi(ISP_DDR, ISP_PIN_MISO))
 
 #define ISP_SCK_DETACH()  (cbi(ISP_PORT, ISP_PIN_SCK), cbi(ISP_DDR, ISP_PIN_SCK))
 #define ISP_MOSI_DETACH() (cbi(ISP_PORT, ISP_PIN_MOSI), cbi(ISP_DDR, ISP_PIN_MOSI))
 #define ISP_MISO_DETACH()
 
-#define ISP_RESET_ATTACH_SET_LOW() (cbi(ISP_PORT, ISP_PIN_RESET), cbi(ISP_DDR, ISP_PIN_RESET))
+#define ISP_RESET_ATTACH_SET_LOW() (cbi(ISP_PORT, ISP_PIN_RESET), sbi(ISP_DDR, ISP_PIN_RESET))
 #define ISP_RESET_DETACH()         (cbi(ISP_DDR, ISP_PIN_RESET), cbi(ISP_PORT, ISP_PIN_RESET))
 
-#define BBSPI_PULSE_WIDTH               250
+#define BBSPI_PULSE_DELAY() _delay_us(250)
 
 static uint8_t bbspi_transfer(uint8_t b)
 {
@@ -61,16 +62,14 @@ static uint8_t bbspi_transfer(uint8_t b)
             ISP_MOSI_SET_LOW();
 
         ISP_SCK_SET_HIGH();
-
-        _delay_us(BBSPI_PULSE_WIDTH);
+        BBSPI_PULSE_DELAY();
 
         b <<= 1;
         if (ISP_MISO_READ())
             b |= 1;
 
         ISP_SCK_SET_LOW();
-
-        _delay_us(BBSPI_PULSE_WIDTH);
+        BBSPI_PULSE_DELAY();
     }
 
     return b;
@@ -79,9 +78,9 @@ static uint8_t bbspi_transfer(uint8_t b)
 static void bbspi_sync_pulse()
 {
     ISP_SCK_SET_HIGH();
-    _delay_us(BBSPI_PULSE_WIDTH);
+    BBSPI_PULSE_DELAY();
     ISP_SCK_SET_LOW();
-    _delay_us(BBSPI_PULSE_WIDTH);
+    BBSPI_PULSE_DELAY();
 }
 
 /* ------------------------------------------------------------------------- */
